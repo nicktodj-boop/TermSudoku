@@ -1,0 +1,18 @@
+# 編譯產物
+out/
+*.class
+
+# 執行期生成
+scores.txt
+
+# 企畫書／簡報用的建置產物（非程式專案本體）
+dist/
+assets/
+build/
+
+# macOS / 編輯器 / 工具
+.DS_Store
+.claude/
+.idea/
+*.iml
+.vscode/
