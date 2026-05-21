@@ -17,7 +17,7 @@ javac -encoding UTF-8 -d out src/*.java
 java -cp out TermSudoku
 ```
 
-IDE：將本資料夾以 Java 專案開啟（IntelliJ 直接 Open 資料夾；Eclipse 以 File → New → Java Project 後將 `src` 設為原始碼資料夾），執行 `TermSudoku` 的 `main`。
+NetBeans（本專案已是 NetBeans 專案）：`File → Open Project`，選此資料夾，按 `Run`（F6）即可執行，主類別為 `TermSudoku`。
 
 ## 操作說明（遊戲中）
 

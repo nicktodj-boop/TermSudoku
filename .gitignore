@@ -10,6 +10,11 @@ dist/
 assets/
 build/
 
+# NetBeans 建置輸出（Clean 會刪除，不進倉庫）
+nbbuild/
+nbdist/
+nbproject/private/
+
 # macOS / 編輯器 / 工具
 .DS_Store
 .claude/
