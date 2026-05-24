@@ -22,3 +22,9 @@ nbproject/private/
 .idea/
 *.iml
 .vscode/
+
+# Office 暫存／鎖定檔
+~$*
+
+# 內部進度筆記（含 review 發現，不公開）
+進度與待辦.md
