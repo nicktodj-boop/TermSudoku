@@ -58,3 +58,11 @@ resources/puzzles.txt 題庫（每行格式： 難度|81字元題面|名稱）
 | 遞迴 | `Solver` 回溯求解、`countSolutions`、`PuzzleBank` 合併排序 |
 | 搜索 | 回溯搜索、`firstByLevel` 二分搜尋、`byId` 線性搜尋 |
 | 排序 | 合併排序（依難度）、排行榜依用時排序 |
+
+## 本地開發工具（不在版本庫）
+
+下列資料夾用來產生繳交文件，靠相對路徑互相綁定（腳本以「自身上兩層」為專案根，再抓 `assets/`、`dist/`），已列入 `.gitignore` 不進版本庫。**請勿搬移或改名 `assets/`、`dist/`**，否則腳本會找不到素材與輸出位置（`tools/` 本身可改名）。
+
+- `tools/`　產生企畫書與簡報的 Python 腳本（`build_docx.py`／`build_pptx.py`／`render_screenshot.py`），另含題庫檢查小工具 `BankCheck.java`
+- `assets/`　腳本所用的終端截圖素材（`.png`／`.txt`）
+- `dist/`　產出的企畫書（`.docx`）與簡報（`.pptx`）成品

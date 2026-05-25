@@ -6,10 +6,13 @@ bin/
 # 執行期生成
 scores.txt
 
-# 企畫書／簡報用的建置產物（非程式專案本體）
+# 企畫書／簡報相關（文件鏈，非程式專案本體）：成品、截圖素材、產出腳本
 dist/
 assets/
-build/
+tools/
+
+# 根目錄繳交用企畫書（.doc 文件成品，含組員個資，不進公開 repo）
+/*.doc
 
 # NetBeans 建置輸出（Clean 會刪除，不進倉庫）
 nbbuild/
