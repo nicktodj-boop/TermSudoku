@@ -37,6 +37,21 @@ NetBeans（本專案已是 NetBeans 專案）：`File → Open Project`，選此
 
 ## 專案結構
 
+模組合成關係（`Game` 組合各模組，體現物件合成）：
+
+```mermaid
+flowchart TD
+    Entry["TermSudoku<br/>進入點"] --> Game["Game<br/>主選單 · 遊玩流程 · 指令解析"]
+    Game --> Board["Board<br/>9×9 盤面 · 合法性檢查 · 渲染"]
+    Game --> Solver["Solver<br/>回溯求解 · 提示 · 解數量"]
+    Game --> Bank["PuzzleBank<br/>題庫 · 合併排序 · 二分搜尋"]
+    Game --> LB["Leaderboard<br/>排行榜 · 排序 · 檔案讀寫"]
+    Bank --> Puzzle["Puzzle<br/>題號 · 難度 · 題面"]
+    Solver -. 求解 .-> Board
+    Bank -. 讀取 .-> Res[("resources/puzzles.txt")]
+    LB -. 讀寫 .-> Scores[("scores.txt")]
+```
+
 ```
 src/TermSudoku.java   進入點
 src/Game.java         主選單與遊玩流程（合成各模組、字串指令解析）
@@ -61,8 +76,13 @@ resources/puzzles.txt 題庫（每行格式： 難度|81字元題面|名稱）
 
 ## 本地開發工具（不在版本庫）
 
+<details>
+<summary>展開：產生繳交文件用的腳本與素材夾（assets / dist / tools）</summary>
+
 下列資料夾用來產生繳交文件，靠相對路徑互相綁定（腳本以「自身上兩層」為專案根，再抓 `assets/`、`dist/`），已列入 `.gitignore` 不進版本庫。**請勿搬移或改名 `assets/`、`dist/`**，否則腳本會找不到素材與輸出位置（`tools/` 本身可改名）。
 
 - `tools/`　產生企畫書與簡報的 Python 腳本（`build_docx.py`／`build_pptx.py`／`render_screenshot.py`），另含題庫檢查小工具 `BankCheck.java`
 - `assets/`　腳本所用的終端截圖素材（`.png`／`.txt`）
 - `dist/`　產出的企畫書（`.docx`）與簡報（`.pptx`）成品
+
+</details>
