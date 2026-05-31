@@ -31,3 +31,6 @@ nbproject/private/
 
 # 內部進度筆記（含 review 發現，不公開）
 進度與待辦.md
+
+# 流程圖衍生點陣圖（保留向量 .svg 原始檔即可，@2x.png 為產出物）
+docs/*@2x.png

@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 1260">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang TC', sans-serif; }
+    .name { fill:#fff; font-size:12px; font-weight:600; }
+    .sub  { fill:#94a3b8; font-size:9px; font-weight:400; }
+    .mono { fill:#cbd5e1; font-size:9px; font-weight:500; }
+    .lbl  { font-size:9px; font-weight:600; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/></marker>
+    <marker id="arrow-em" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/></marker>
+    <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/></marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa"/></marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- ============ CONNECTORS (drawn first, boxes mask over) ============ -->
+  <!-- Start -> P1 -->
+  <line x1="420" y1="126" x2="420" y2="176" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- P1 -> P2 -->
+  <line x1="420" y1="226" x2="420" y2="286" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- P2 -> P3 -->
+  <line x1="420" y1="352" x2="420" y2="412" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- P3 -> D0 -->
+  <line x1="420" y1="464" x2="420" y2="495" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- D0 Yes (down) -> P4 -->
+  <line x1="420" y1="585" x2="420" y2="640" stroke="#34d399" stroke-width="1.6" marker-end="url(#arrow-em)"/>
+  <text x="432" y="615" class="lbl" fill="#34d399">是 · 未達標</text>
+  <!-- P4 -> P5 -->
+  <line x1="420" y1="696" x2="420" y2="756" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- P5 -> D1 -->
+  <line x1="420" y1="812" x2="420" y2="845" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- D1 Yes (down) -> P6 -->
+  <line x1="420" y1="935" x2="420" y2="985" stroke="#34d399" stroke-width="1.6" marker-end="url(#arrow-em)"/>
+  <text x="432" y="965" class="lbl" fill="#34d399">是 · 唯一解</text>
+  <!-- D1 No (right) -> P7 -->
+  <line x1="510" y1="890" x2="690" y2="890" stroke="#fb7185" stroke-width="1.6" marker-end="url(#arrow-rose)"/>
+  <text x="560" y="882" class="lbl" fill="#fb7185">否 · 變多解</text>
+
+  <!-- Loop-back rail (P6 accept + P7 restore) up to D0 -->
+  <!-- P6 bottom -> down -> right -> up rail -->
+  <path d="M 420 1035 L 420 1100 L 980 1100 L 980 540 L 510 540" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+  <!-- P7 right -> join rail -->
+  <path d="M 900 890 L 980 890" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="700" y="1092" class="lbl" fill="#94a3b8">↺ 取下一格</text>
+
+  <!-- D0 No (left) -> Output -->
+  <path d="M 330 540 L 165 540 L 165 728" fill="none" stroke="#60a5fa" stroke-width="1.6" marker-end="url(#arrow-blue)"/>
+  <text x="175" y="560" class="lbl" fill="#60a5fa">否 · 已達標／無候選</text>
+
+  <!-- ============ NODES ============ -->
+  <!-- Start -->
+  <rect x="260" y="70" width="320" height="56" rx="25" fill="#0f172a"/>
+  <rect x="260" y="70" width="320" height="56" rx="25" fill="rgba(59,130,246,0.3)" stroke="#60a5fa" stroke-width="1.6"/>
+  <text x="420" y="93" text-anchor="middle" class="name">開始：選難度，定目標提示數</text>
+  <text x="420" y="110" text-anchor="middle" class="sub">簡單≈36 ／ 普通≈30 ／ 困難≈26 givens</text>
+
+  <!-- P1 -->
+  <rect x="290" y="176" width="260" height="50" rx="6" fill="#0f172a"/>
+  <rect x="290" y="176" width="260" height="50" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="420" y="206" text-anchor="middle" class="name">建立 9×9 全空盤面</text>
+
+  <!-- P2 (recursive solve) -->
+  <rect x="240" y="286" width="360" height="66" rx="6" fill="#0f172a"/>
+  <rect x="240" y="286" width="360" height="66" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="420" y="309" text-anchor="middle" class="name">solve() 回溯填出完整解盤</text>
+  <text x="420" y="326" text-anchor="middle" class="mono">候選 1-9 隨機洗牌 → 每次得不同完整解</text>
+  <text x="420" y="343" text-anchor="middle" class="sub">遞迴回溯 backtracking</text>
+
+  <!-- P3 -->
+  <rect x="275" y="412" width="290" height="52" rx="6" fill="#0f172a"/>
+  <rect x="275" y="412" width="290" height="52" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="420" y="435" text-anchor="middle" class="name">收集 81 格為候選清單</text>
+  <text x="420" y="452" text-anchor="middle" class="sub">隨機打亂挖洞順序</text>
+
+  <!-- D0 -->
+  <polygon points="420,495 510,540 420,585 330,540" fill="#0f172a"/>
+  <polygon points="420,495 510,540 420,585 330,540" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.6"/>
+  <text x="420" y="535" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">未達標 且</text>
+  <text x="420" y="549" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">仍有候選？</text>
+
+  <!-- P4 -->
+  <rect x="290" y="640" width="260" height="56" rx="6" fill="#0f172a"/>
+  <rect x="290" y="640" width="260" height="56" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="420" y="664" text-anchor="middle" class="name">取一格：暫存值 → 挖空</text>
+  <text x="420" y="681" text-anchor="middle" class="sub">該格設為 EMPTY</text>
+
+  <!-- P5 (recursive count) -->
+  <rect x="270" y="756" width="300" height="56" rx="6" fill="#0f172a"/>
+  <rect x="270" y="756" width="300" height="56" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="420" y="780" text-anchor="middle" class="name">countSolutions(board, 2)</text>
+  <text x="420" y="797" text-anchor="middle" class="sub">遞迴回溯計數，最多數到 2</text>
+
+  <!-- D1 -->
+  <polygon points="420,845 510,890 420,935 330,890" fill="#0f172a"/>
+  <polygon points="420,845 510,890 420,935 330,890" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.6"/>
+  <text x="420" y="894" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">解數 == 1？</text>
+
+  <!-- P6 accept -->
+  <rect x="290" y="985" width="260" height="50" rx="6" fill="#0f172a"/>
+  <rect x="290" y="985" width="260" height="50" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="420" y="1009" text-anchor="middle" class="name">接受挖空（保持空白）</text>
+  <text x="420" y="1025" text-anchor="middle" class="sub">提示數 −1</text>
+
+  <!-- P7 restore -->
+  <rect x="690" y="862" width="210" height="56" rx="6" fill="#0f172a"/>
+  <rect x="690" y="862" width="210" height="56" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="795" y="886" text-anchor="middle" class="name">還原該格的值</text>
+  <text x="795" y="903" text-anchor="middle" class="sub">此格不可挖，標記跳過</text>
+
+  <!-- Output (parallelogram) -->
+  <polygon points="73,730 265,730 247,790 55,790" fill="#0f172a"/>
+  <polygon points="73,730 265,730 247,790 55,790" fill="rgba(59,130,246,0.3)" stroke="#60a5fa" stroke-width="1.6"/>
+  <text x="160" y="755" text-anchor="middle" class="name">輸出唯一解新題</text>
+  <text x="160" y="771" text-anchor="middle" class="sub">→ 81 字元題面字串</text>
+  <text x="160" y="784" text-anchor="middle" class="sub">併入題庫／直接遊玩</text>
+
+  <!-- ============ TECH ANNOTATIONS ============ -->
+  <!-- (1) recursion -->
+  <rect x="650" y="286" width="290" height="66" rx="8" fill="none" stroke="#fb7185" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="664" y="306" fill="#fb7185" font-size="9" font-weight="600">① 遞迴回溯</text>
+  <text x="664" y="322" fill="#cbd5e1" font-size="8.5">solve() 與 countSolutions()</text>
+  <text x="664" y="336" fill="#cbd5e1" font-size="8.5">皆為 backtracking 遞迴，</text>
+  <text x="664" y="349" fill="#cbd5e1" font-size="8.5">出題器直接複用既有方法。</text>
+  <line x1="650" y1="319" x2="600" y2="319" stroke="#fb7185" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- (2) randomness -->
+  <rect x="650" y="404" width="290" height="60" rx="8" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="664" y="424" fill="#fbbf24" font-size="9" font-weight="600">② 隨機洗牌＝多樣性來源</text>
+  <text x="664" y="440" fill="#cbd5e1" font-size="8.5">完整解的候選順序 + 挖洞順序</text>
+  <text x="664" y="454" fill="#cbd5e1" font-size="8.5">皆隨機 → 同難度也能無限出新題。</text>
+  <line x1="650" y1="438" x2="565" y2="438" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- (3) uniqueness guarantee -->
+  <rect x="575" y="985" width="330" height="64" rx="8" fill="none" stroke="#34d399" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="589" y="1005" fill="#34d399" font-size="9" font-weight="600">③ 唯一解保證</text>
+  <text x="589" y="1021" fill="#cbd5e1" font-size="8.5">每挖一格都先 countSolutions==1 驗證，</text>
+  <text x="589" y="1035" fill="#cbd5e1" font-size="8.5">一旦變多解就還原 → 產出題目必定</text>
+  <text x="589" y="1046" fill="#cbd5e1" font-size="8.5">只有一個正解（與遊戲 h 提示相容）。</text>
+
+  <!-- ============ LEGEND ============ -->
+  <rect x="60" y="1140" width="700" height="86" rx="8" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1"/>
+  <text x="74" y="1162" fill="#e2e8f0" font-size="10" font-weight="700">圖例</text>
+  <rect x="74" y="1174" width="26" height="14" rx="7" fill="rgba(59,130,246,0.3)" stroke="#60a5fa"/>
+  <text x="108" y="1185" fill="#cbd5e1" font-size="9">起點／輸出</text>
+  <rect x="210" y="1174" width="26" height="14" rx="3" fill="rgba(8,51,68,0.4)" stroke="#22d3ee"/>
+  <text x="244" y="1185" fill="#cbd5e1" font-size="9">一般步驟</text>
+  <rect x="360" y="1174" width="26" height="14" rx="3" fill="rgba(6,78,59,0.4)" stroke="#34d399"/>
+  <text x="394" y="1185" fill="#cbd5e1" font-size="9">遞迴步驟（複用 Solver）</text>
+  <polygon points="600,1174 614,1181 600,1188 586,1181" fill="rgba(120,53,15,0.3)" stroke="#fbbf24"/>
+  <text x="622" y="1185" fill="#cbd5e1" font-size="9">判斷分支</text>
+  <rect x="74" y="1200" width="26" height="14" rx="3" fill="rgba(136,19,55,0.4)" stroke="#fb7185"/>
+  <text x="108" y="1211" fill="#cbd5e1" font-size="9">否決／還原</text>
+  <line x1="210" y1="1207" x2="250" y2="1207" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+  <text x="258" y="1211" fill="#cbd5e1" font-size="9">迴圈回送（取下一格）</text>
+
+  <!-- ============ TITLE ============ -->
+  <text x="30" y="40" fill="#f1f5f9" font-size="16" font-weight="700">TermSudoku · 隨機出題器演算法流程</text>
+  <text x="30" y="58" fill="#94a3b8" font-size="10">完整解生成 → 逐格挖洞 → 唯一解驗證；複用 Solver.solve 與 Solver.countSolutions</text>
+</svg>

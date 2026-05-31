@@ -111,6 +111,17 @@ public class Board {
         return n;
     }
 
+    /** 將目前盤面序列化為 81 字元字串（空格輸出 '0'），供出題器產生題面字串。 */
+    public String toLine() {
+        StringBuilder sb = new StringBuilder(SIZE * SIZE);
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                sb.append((char) ('0' + grid[r][c]));
+            }
+        }
+        return sb.toString();
+    }
+
     /** 盤面是否完成：沒有空格且每一格都合法。 */
     public boolean isSolved() {
         for (int r = 0; r < SIZE; r++) {
