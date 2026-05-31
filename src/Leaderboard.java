@@ -46,24 +46,30 @@ public class Leaderboard {
         load();
     }
 
-    /** 從檔案載入紀錄；檔案不存在或內容損毀時，視為空榜。 */
+    /** 從檔案載入紀錄；檔案不存在或讀檔失敗時視為空榜，單行損毀只略過該行。 */
     private void load() {
         records.clear();
+        List<String> lines;
         try {
             Path p = Paths.get(path);
             if (!Files.exists(p)) {
                 return;
             }
-            for (String s : Files.readAllLines(p, StandardCharsets.UTF_8)) {
-                String[] a = s.split("\\|");       // 字串：以 | 切欄位
-                if (a.length >= 3) {
+            lines = Files.readAllLines(p, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return;                                // 讀檔失敗：視為空榜，不動既有檔
+        }
+        for (String s : lines) {
+            String[] a = s.split("\\|");           // 字串：以 | 切欄位
+            if (a.length >= 3) {
+                try {
                     records.add(new Record(a[0], Integer.parseInt(a[1]), Integer.parseInt(a[2])));
+                } catch (NumberFormatException e) {
+                    // 單行數字損毀只略過該行，不清空其餘正常紀錄（避免整榜遺失）
                 }
             }
-            sortByTime();
-        } catch (IOException | NumberFormatException e) {
-            records.clear();                       // 資料有問題就重來，不讓程式中斷
         }
+        sortByTime();
     }
 
     /** 新增一筆紀錄，重新排序後存檔。 */

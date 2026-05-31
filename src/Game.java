@@ -1,4 +1,5 @@
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
@@ -116,7 +117,7 @@ public class Game {
     /** 單局遊玩：顯示盤面、讀取指令、計時，直到完成或返回。 */
     private void play(Puzzle puzzle) {
         Board b = puzzle.newBoard();
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();        // 單調時鐘計時，避免系統時鐘回撥造成負秒
         history.clear();
         status = "輸入「列 行 數」填數（例如 3 5 7），數字填 0 清除；輸入 ? 看完整指令。";
         while (true) {
@@ -145,7 +146,7 @@ public class Game {
             } else if (op.equals("r")) {
                 b = puzzle.newBoard();             // 重來本題：清空已填，保留題目給定
                 history.clear();
-                start = System.currentTimeMillis();
+                start = System.nanoTime();
                 status = "已重來本題（清空已填，保留題目給定）。";
             } else if (op.equals("n")) {
                 Puzzle np = pickSameLevel(puzzle); // 換一題：同難度隨機挑另一題
@@ -157,9 +158,7 @@ public class Game {
                 }
                 b = puzzle.newBoard();
                 history.clear();
-                start = System.currentTimeMillis();
-            } else if (op.equals("d")) {
-                status = "清除方式已改為：列 行 0（例如 3 5 0）。輸入 ? 看說明。";
+                start = System.nanoTime();
             } else if (t.length == 3) {
                 fillOrClear(b, t);
             } else {
@@ -169,7 +168,7 @@ public class Game {
             if (b.isSolved()) {
                 System.out.println();
                 System.out.print(b.render());
-                int secs = (int) ((System.currentTimeMillis() - start) / 1000);
+                int secs = (int) ((System.nanoTime() - start) / 1_000_000_000L);
                 System.out.println("  恭喜完成！用時 " + formatSecs(secs) + "。");
                 offerSaveScore(puzzle, secs);
                 return;
@@ -181,7 +180,7 @@ public class Game {
     private void printPlayScreen(Puzzle puzzle, Board b, long start) {
         System.out.println();
         System.out.println("  題目 #" + puzzle.id() + "（難度：" + puzzle.levelName()
-                + "，提示數 " + puzzle.givens() + "）   已用時間 " + formatElapsed(start));
+                + "，提示數 " + puzzle.givens() + "）   剩 " + b.emptyCount() + " 格   已用時間 " + formatElapsed(start));
         if (!status.isEmpty()) {
             System.out.println("  ※ " + status);     // 固定狀態列：顯示上一步結果
         }
@@ -236,7 +235,7 @@ public class Game {
     private void applyHint(Board b) {
         int[] h = solver.hint(b);
         if (h == null) {
-            status = "目前盤面無解（可能填了衝突的數字），無法提示。";
+            status = "目前盤面已無解（先前某格雖合規，但與正解矛盾），無法提示。可用 u 復原或 r 重來。";
             return;
         }
         history.push(new int[]{h[0], h[1], b.get(h[0], h[1])});   // 提示也可被復原
@@ -257,15 +256,13 @@ public class Game {
 
     /** 從同難度的題目中隨機挑一題（盡量不同於目前題目）。 */
     private Puzzle pickSameLevel(Puzzle current) {
-        List<Puzzle> pool = bank.byLevel(current.level());
-        if (pool.size() <= 1) {
-            return current;
+        List<Puzzle> others = new ArrayList<>();
+        for (Puzzle p : bank.byLevel(current.level())) {
+            if (p.id() != current.id()) {
+                others.add(p);                         // 先排除目前題目，避免隨機重抽的無窮迴圈風險
+            }
         }
-        Puzzle p;
-        do {
-            p = pool.get(rng.nextInt(pool.size()));
-        } while (p.id() == current.id());
-        return p;
+        return others.isEmpty() ? current : others.get(rng.nextInt(others.size()));
     }
 
     /** 自動求解：用回溯法把盤面解完並顯示。 */
@@ -275,9 +272,9 @@ public class Game {
         boolean ok = solver.solve(copy);
         double ms = (System.nanoTime() - t0) / 1_000_000.0;
         if (!ok) {
-            status = "目前盤面無解（可能填了衝突的數字）。";
+            status = "目前盤面已無解（先前某格雖合規，但與正解矛盾）。可用 u 復原或 r 重來。";
             System.out.println();
-            System.out.println("  目前盤面無解（可能填了衝突的數字）。");
+            System.out.println("  目前盤面已無解（先前某格雖合規，但與正解矛盾），無法求解。");
             return;
         }
         for (int r = 0; r < Board.SIZE; r++) {
@@ -387,10 +384,12 @@ public class Game {
     private String normalize(String s) {
         StringBuilder sb = new StringBuilder();
         for (char ch : s.trim().toCharArray()) {
-            if (ch >= '０' && ch <= '９') {
-                sb.append((char) ('0' + (ch - '０')));   // 全形 0-9 轉半形
-            } else if (ch == ',' || ch == '，' || ch == '、') {
-                sb.append(' ');                              // 逗號、全形逗號、頓號 → 空白
+            if (ch == ',' || ch == '，' || ch == '、') {
+                sb.append(' ');                              // 逗號（半／全形）、頓號 → 空白
+            } else if (ch == '　') {
+                sb.append(' ');                              // 全形空格 → 半形空白
+            } else if (ch >= '！' && ch <= '～') {
+                sb.append((char) (ch - 0xFEE0));             // 全形 ASCII（數字＋英文字母）→ 半形
             } else {
                 sb.append(ch);
             }
@@ -413,8 +412,8 @@ public class Game {
         return (v == null) ? null : v - 1;
     }
 
-    private String formatElapsed(long startMillis) {
-        return formatSecs((int) ((System.currentTimeMillis() - startMillis) / 1000));
+    private String formatElapsed(long startNanos) {
+        return formatSecs((int) ((System.nanoTime() - startNanos) / 1_000_000_000L));
     }
 
     private String formatSecs(int s) {
