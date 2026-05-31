@@ -16,6 +16,9 @@ public class PuzzleBank {
     // 以 ArrayList 收藏所有題目
     private final List<Puzzle> puzzles = new ArrayList<>();
 
+    // 合成一個求解器，載入時用它的遞迴計數驗證每題是否唯一解
+    private final Solver solver = new Solver();
+
     /**
      * 從檔案載入題庫；若找不到檔案或讀取失敗，改用內建題目，確保程式仍可執行。
      * 檔案每行格式： level|81字元題面|名稱 （# 開頭為註解，空行略過）
@@ -54,7 +57,12 @@ public class PuzzleBank {
             String line = parts[1].trim();
             String name = parts[2].trim();
             if (line.length() == 81) {
-                puzzles.add(new Puzzle(id++, level, name, line));
+                Puzzle pz = new Puzzle(id, level, name, line);
+                // 遞迴驗證：回溯計數最多數到 2，唯一解（==1）才收進題庫
+                if (solver.countSolutions(pz.newBoard(), 2) == 1) {
+                    puzzles.add(pz);
+                    id++;
+                }
             }
         }
         sortByLevel();                             // 載入後立即依難度排序
@@ -77,11 +85,18 @@ public class PuzzleBank {
         return null;
     }
 
-    /** 取得某難度的所有題目。 */
+    /**
+     * 取得某難度的所有題目：先以二分搜尋定位該難度第一題，
+     * 再往後收集連續同難度題（題庫已依難度排序，同難度必相鄰）。
+     */
     public List<Puzzle> byLevel(int level) {
         List<Puzzle> out = new ArrayList<>();
-        for (Puzzle p : puzzles) {
-            if (p.level() == level) out.add(p);
+        int first = firstIndexByLevel(level);      // 二分搜索：定位該難度起點
+        if (first < 0) {
+            return out;                            // 該難度不存在
+        }
+        for (int i = first; i < puzzles.size() && puzzles.get(i).level() == level; i++) {
+            out.add(puzzles.get(i));
         }
         return out;
     }
@@ -126,6 +141,15 @@ public class PuzzleBank {
      * 找不到回傳 null。示範二分搜索。
      */
     public Puzzle firstByLevel(int level) {
+        int i = firstIndexByLevel(level);
+        return i >= 0 ? puzzles.get(i) : null;
+    }
+
+    /**
+     * 二分搜尋「指定難度第一個元素」的索引（前提：清單已依難度排序）。
+     * 找不到回傳 -1。byLevel 與 firstByLevel 共用此搜索核心。
+     */
+    private int firstIndexByLevel(int level) {
         int lo = 0;
         int hi = puzzles.size() - 1;
         int found = -1;
@@ -139,7 +163,7 @@ public class PuzzleBank {
                 lo = mid + 1;
             }
         }
-        return found >= 0 ? puzzles.get(found) : null;
+        return found;
     }
 
     // 內建題目（找不到 resources/puzzles.txt 時的後備，確保專案可直接執行）
