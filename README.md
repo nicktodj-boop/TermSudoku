@@ -35,6 +35,26 @@ NetBeans（本專案已是 NetBeans 專案）：`File → Open Project`，選此
 
 數字可用全形或半形，分隔可用空白或逗號。
 
+## 遊玩流程
+
+```mermaid
+flowchart TD
+    Start([啟動]) --> Menu[主選單]
+    Menu --> Level[選難度]
+    Level --> Load[載入題目]
+    Load --> Input{玩家輸入指令}
+    Input -->|"列 行 數"| Fill[填入 / 清除]
+    Fill --> Check[即時檢查衝突]
+    Check --> Done{完成?}
+    Input -->|h 提示| Hint[提示一格] --> Done
+    Input -->|s 求解| Solve[回溯自動求解] --> Done
+    Input -->|"u / r"| Undo[復原 / 重來] --> Input
+    Input -->|n 換題| Load
+    Input -->|q 返回| Menu
+    Done -->|未完成| Input
+    Done -->|完成| Record[記錄排行榜] --> Menu
+```
+
 ## 專案結構
 
 模組合成關係（`Game` 組合各模組，體現物件合成）：
@@ -64,6 +84,18 @@ resources/puzzles.txt 題庫（每行格式： 難度|81字元題面|名稱）
 ```
 
 ## 對應本學期主題
+
+主題對應到的模組（圖示總覽，明細見下表）：
+
+```mermaid
+flowchart LR
+    T1[物件封裝合成] --> Board & Game
+    T2["收藏 List/Deque"] --> PuzzleBank & Leaderboard
+    T3[字串] --> Parse["題庫/指令解析 · 盤面渲染"]
+    T4[遞迴] --> Solver
+    T5[搜索] --> Solver & PuzzleBank
+    T6[排序] --> PuzzleBank & Leaderboard
+```
 
 | 主題 | 在哪裡實作 |
 |---|---|
