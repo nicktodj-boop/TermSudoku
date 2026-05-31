@@ -15,10 +15,14 @@ public class Game {
     private final Random rng = new Random();
     private final Solver solver = new Solver();        // 合成：擁有一個求解器
     private final PuzzleBank bank = new PuzzleBank();   // 合成：擁有題庫
+    private final Generator generator = new Generator();// 合成：擁有隨機出題器
     private final Leaderboard board;                   // 合成：擁有排行榜
 
     // 遊玩時顯示在盤面上方的「上一步結果」狀態列，不會被下一次重畫沖掉
     private String status = "";
+
+    // 本局已使用的提示次數（登上排行榜時一併記錄）
+    private int hintsUsed = 0;
 
     // 步驟歷史（用於復原）：每筆記錄 {列, 行, 該格先前的值}
     private final Deque<int[]> history = new ArrayDeque<>();
@@ -41,11 +45,12 @@ public class Game {
                 case "2": chooseFromList(); break;
                 case "3": solveDemo(); break;
                 case "4": showLeaderboard(); break;
+                case "5": startGenerated(); break;
                 case "0":
                     System.out.println("  再見！");
                     return;
                 default:
-                    System.out.println("  無效選項，請輸入 0-4。");
+                    System.out.println("  無效選項，請輸入 0-5。");
             }
         }
     }
@@ -67,6 +72,7 @@ public class Game {
         System.out.println("  [2] 從題庫選題遊玩");
         System.out.println("  [3] 自動求解示範（觀看回溯解題）");
         System.out.println("  [4] 難度排行榜");
+        System.out.println("  [5] 隨機出新題並遊玩（程式生成唯一解）");
         System.out.println("  [0] 離開");
         System.out.println();
         System.out.print("  請輸入選項：");
@@ -90,6 +96,21 @@ public class Game {
             return;
         }
         play(pool.get(rng.nextInt(pool.size())));
+    }
+
+    /** 選難度，由出題器即時生成一道保證唯一解的新題並開始遊玩。 */
+    private void startGenerated() {
+        System.out.print("  選擇難度（1 簡單 / 2 普通 / 3 困難）：");
+        String s = readLine();
+        if (s == null) return;
+        Integer level = parseInt(s);
+        if (level == null || level < 1 || level > 3) {
+            System.out.println("  請輸入 1-3。");
+            return;
+        }
+        System.out.println("  產生唯一解新題中……");
+        Puzzle p = generator.generate(bank.size() + 1, level);   // 題號接在題庫之後
+        play(p);
     }
 
     /** 列出整個題庫（已依難度排序），讓玩家用題號挑選。 */
@@ -119,6 +140,7 @@ public class Game {
         Board b = puzzle.newBoard();
         long start = System.nanoTime();        // 單調時鐘計時，避免系統時鐘回撥造成負秒
         history.clear();
+        hintsUsed = 0;                         // 本局提示次數歸零
         status = "輸入「列 行 數」填數（例如 3 5 7），數字填 0 清除；輸入 ? 看完整指令。";
         while (true) {
             printPlayScreen(puzzle, b, start);
@@ -147,6 +169,7 @@ public class Game {
                 b = puzzle.newBoard();             // 重來本題：清空已填，保留題目給定
                 history.clear();
                 start = System.nanoTime();
+                hintsUsed = 0;
                 status = "已重來本題（清空已填，保留題目給定）。";
             } else if (op.equals("n")) {
                 Puzzle np = pickSameLevel(puzzle); // 換一題：同難度隨機挑另一題
@@ -159,6 +182,7 @@ public class Game {
                 b = puzzle.newBoard();
                 history.clear();
                 start = System.nanoTime();
+                hintsUsed = 0;
             } else if (t.length == 3) {
                 fillOrClear(b, t);
             } else {
@@ -240,6 +264,7 @@ public class Game {
         }
         history.push(new int[]{h[0], h[1], b.get(h[0], h[1])});   // 提示也可被復原
         b.set(h[0], h[1], h[2]);
+        hintsUsed++;                                              // 計入本局提示次數
         status = "提示：第 " + (h[0] + 1) + " 列第 " + (h[1] + 1) + " 行 = " + h[2] + "。";
     }
 
@@ -312,8 +337,8 @@ public class Game {
         if (name == null) return;
         name = name.trim();
         if (!name.isEmpty()) {
-            board.add(name, p.level(), secs);
-            System.out.println("  已記錄到排行榜。");
+            board.add(name, p.level(), secs, hintsUsed);
+            System.out.println("  已記錄到排行榜（提示 " + hintsUsed + " 次）。");
         }
     }
 
@@ -355,18 +380,26 @@ public class Game {
         System.out.printf("  求解耗時 %.2f ms。%n", ms);
     }
 
-    /** 顯示排行榜前 10 名。 */
+    /** 顯示排行榜：簡單／普通／困難三張榜分開，各取用時最短前 10 名。 */
     private void showLeaderboard() {
         System.out.println();
         if (board.isEmpty()) {
             System.out.println("  排行榜目前沒有紀錄，完成一局即可上榜。");
             return;
         }
-        System.out.println("  排行榜（用時最短前 10 名）：");
-        int rank = 1;
-        for (Leaderboard.Record r : board.top(10)) {
-            System.out.printf("   %2d. %-10s [%s]  %s%n",
-                    rank++, r.name(), Puzzle.levelName(r.level()), formatSecs(r.seconds()));
+        for (int level = 1; level <= 3; level++) {
+            System.out.println();
+            System.out.println("  【" + Puzzle.levelName(level) + "】用時最短前 10 名：");
+            List<Leaderboard.Record> rs = board.top(level, 10);
+            if (rs.isEmpty()) {
+                System.out.println("    （此難度尚無紀錄）");
+                continue;
+            }
+            int rank = 1;
+            for (Leaderboard.Record r : rs) {
+                System.out.printf("   %2d. %-10s %s  提示 %d 次  %s%n",
+                        rank++, r.name(), formatSecs(r.seconds()), r.hints(), r.date());
+            }
         }
     }
 
