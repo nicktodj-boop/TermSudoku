@@ -34,3 +34,6 @@ nbproject/private/
 
 # 流程圖衍生點陣圖（保留向量 .svg 原始檔即可，@2x.png 為產出物）
 docs/*@2x.png
+
+# 內部開發思路 canvas（dev-router 可選掛件，不進公開 repo）
+docs/架構取捨.canvas
