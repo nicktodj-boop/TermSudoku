@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<!--
+  TermSudoku 期末作品簡報 · 深色終端機風
+  Design system (ui-ux-pro-max): Dark Mode OLED · bg #0F172A · accent #22C55E
+  Fonts: JetBrains Mono + IBM Plex Sans + Noto Sans TC
+  9 頁 16:9 · ←/→ 翻頁 · 列印即匯出 PDF（每頁一張）
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>終端數獨 TermSudoku · 期末作品簡報</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F172A; --panel:#161B26; --panel2:#1E293B; --code:#0A0C10;
+  --fg:#F8FAFC; --body:#CBD5E1; --muted:#8B949E; --border:#334155;
+  --green:#22C55E; --green-dim:#16A34A; --blue:#60A5FA; --gold:#E3B341;
+  --rose:#FB7185; --violet:#A78BFA;
+  --mono:'JetBrains Mono','SF Mono','Cascadia Code',monospace;
+  --sans:'IBM Plex Sans','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
+  --cjk:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#000;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}
+
+/* ---- 舞台縮放：固定 1280×720，置中縮放至視窗 ---- */
+#stage{position:relative;width:1280px;height:720px;transform-origin:center center}
+.slide{position:absolute;inset:0;width:1280px;height:720px;background:var(--bg);
+  color:var(--fg);overflow:hidden;display:none;
+  background-image:linear-gradient(rgba(148,163,184,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(148,163,184,.035) 1px,transparent 1px);
+  background-size:40px 40px}
+.slide.active{display:block}
+/* 翻頁淡入：僅螢幕，不污染列印/PDF（print 強制 display:block、不觸發動畫） */
+@media screen{
+  .slide.active{animation:slidein .34s cubic-bezier(.22,1,.36,1) both}
+}
+@keyframes slidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* 尊重 prefers-reduced-motion：關閉淡入與所有閃爍 */
+@media (prefers-reduced-motion:reduce){
+  .slide.active{animation:none}
+  .cursor,.badge.live::before{animation:none}
+}
+
+/* ---- 共用版面 ---- */
+.pad{position:absolute;inset:0;padding:54px 64px}
+.dots{position:absolute;top:30px;left:64px;display:flex;gap:9px}
+.dots i{width:13px;height:13px;border-radius:50%;display:block}
+.dots i:nth-child(1){background:#FF5F56}.dots i:nth-child(2){background:#FFBD2E}.dots i:nth-child(3){background:#27C93F}
+.chapter{position:absolute;top:27px;right:64px;font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.pageno{position:absolute;bottom:22px;right:64px;font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.brandfoot{position:absolute;bottom:22px;left:64px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.metaline,.members,.cmd,.code,.term .body{font-variant-numeric:tabular-nums}
+
+h1.title{font-family:var(--cjk);font-weight:700;font-size:38px;color:var(--fg);margin-top:30px;display:flex;align-items:center;gap:14px}
+h1.title .hash{font-family:var(--mono);color:var(--green);font-weight:700}
+.subtitle{font-family:var(--cjk);color:var(--muted);font-size:16px;margin-top:6px}
+.rule{height:2px;background:linear-gradient(90deg,var(--green),transparent);width:160px;margin:16px 0 26px}
+
+ul.bul{list-style:none}
+ul.bul li{font-family:var(--cjk);color:var(--body);font-size:19px;line-height:1.5;margin-bottom:16px;
+  padding-left:26px;position:relative}
+ul.bul li::before{content:"▸";position:absolute;left:0;color:var(--green);font-family:var(--mono)}
+.lead{font-family:var(--cjk);color:var(--fg);font-size:21px;font-weight:600;margin-bottom:16px}
+
+.badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:13px;font-weight:600;
+  color:#031b0c;background:var(--green);padding:5px 12px;border-radius:6px;letter-spacing:.5px}
+.badge.live::before{content:"";width:8px;height:8px;border-radius:50%;background:#031b0c;
+  animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:.25}}
+
+.shot{border:1px solid var(--border);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.5);background:#18181c}
+.callout{border:1px solid var(--green);border-radius:10px;background:rgba(34,197,94,.08);padding:18px 20px}
+.callout .k{font-family:var(--mono);color:var(--green);font-weight:700;font-size:14px;letter-spacing:.5px}
+.callout p{font-family:var(--cjk);color:var(--body);font-size:16px;line-height:1.5;margin-top:7px}
+
+.code{font-family:var(--mono);background:var(--code);border:1px solid var(--border);border-radius:10px;
+  padding:18px 22px;color:#d6deeb;font-size:16px;line-height:1.85}
+.code .pmt{color:var(--muted)}.code .g{color:var(--green)}
+
+/* 終端視窗外框（給文字內容用） */
+.term{background:var(--code);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.term .bar{background:#212530;height:34px;display:flex;align-items:center;padding:0 14px;gap:8px;border-bottom:1px solid var(--border)}
+.term .bar i{width:11px;height:11px;border-radius:50%}
+.term .bar i:nth-child(1){background:#FF5F56}.term .bar i:nth-child(2){background:#FFBD2E}.term .bar i:nth-child(3){background:#27C93F}
+.term .bar span{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px}
+.term .body{padding:18px 22px;font-family:var(--mono);font-size:14px;line-height:1.7;color:#cbd5e1}
+
+/* 指令表 */
+.cmd{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:15px}
+.cmd code{font-family:var(--mono);color:var(--green);font-weight:600;white-space:nowrap}
+.cmd span{font-family:var(--cjk);color:var(--body)}
+
+/* 主題對照表 */
+table.themes{width:100%;border-collapse:collapse;font-size:16px}
+table.themes th,table.themes td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+table.themes th{font-family:var(--cjk);color:var(--green);font-size:14px;background:var(--panel)}
+table.themes td.k{font-family:var(--cjk);color:var(--fg);font-weight:600;white-space:nowrap;width:150px}
+table.themes td.v{font-family:var(--cjk);color:var(--body)}
+table.themes td.v b{color:var(--green);font-weight:600}
+table.themes tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* 雙卡 */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px 26px}
+.card.g{border-color:var(--green)}.card.b{border-color:var(--gold)}
+.card h3{font-family:var(--cjk);font-size:21px;margin-bottom:16px}
+.card.g h3{color:var(--green)}.card.b h3{color:var(--gold)}
+.card li{font-family:var(--cjk);color:var(--body);font-size:15.5px;line-height:1.45;margin-bottom:13px;padding-left:22px;position:relative}
+.card li::before{content:"▸";position:absolute;left:0;font-family:var(--mono)}
+.card.g li::before{color:var(--green)}.card.b li::before{color:var(--gold)}
+
+/* 封面 */
+.cover-title{font-family:var(--cjk);font-weight:900;font-size:74px;line-height:1.05;letter-spacing:1px}
+.cover-title .en{font-family:var(--mono);color:var(--green);font-weight:700}
+.cursor{display:inline-block;width:18px;height:54px;background:var(--green);margin-left:8px;vertical-align:-6px;animation:blink 1.1s steps(1) infinite}
+.members{font-family:var(--cjk);font-size:18px;color:var(--body)}
+.members b{color:var(--fg);font-weight:600}
+.metaline{font-family:var(--cjk);font-size:15px;color:var(--muted)}
+
+/* 迷你數獨格 */
+.mini{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:6px}
+.mini div{background:var(--panel2);border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:28px;color:var(--green)}
+.mini div.e{color:transparent}
+
+.hook{font-family:var(--cjk);font-size:25px;font-weight:700;color:var(--fg);line-height:1.45;
+  border-left:3px solid var(--green);padding-left:20px;margin-bottom:24px}
+.hook em{color:var(--green);font-style:normal}
+.fnote{font-family:var(--cjk);font-size:14px;color:var(--muted);margin-top:6px}
+
+/* 流程步驟 */
+.steps{list-style:none;counter-reset:s}
+.steps li{font-family:var(--cjk);color:var(--body);font-size:16.5px;line-height:1.45;margin-bottom:14px;
+  padding-left:38px;position:relative;counter-increment:s}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;
+  background:var(--panel2);color:var(--green);font-family:var(--mono);font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:center}
+.steps li b{color:var(--green);font-weight:600}
+
+/* 導覽控制 */
+#nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:50;
+  font-family:var(--mono);font-size:13px;color:var(--muted);background:rgba(15,23,42,.8);
+  border:1px solid var(--border);border-radius:8px;padding:6px 12px;backdrop-filter:blur(6px)}
+#nav button{background:none;border:none;color:var(--body);cursor:pointer;font-family:var(--mono);font-size:14px;padding:0 6px}
+#nav button:hover{color:var(--green)}
+#nav button:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px;color:var(--green)}
+#nav .hint{color:var(--muted);opacity:.7}
+
+/* ---- 列印 / PDF：每頁一張 ---- */
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{height:auto;display:block;background:#fff}
+  #stage{width:1280px;height:auto;transform:none!important}
+  #nav{display:none}
+  .slide{display:block!important;position:relative;page-break-after:always;break-after:page}
+  .slide:last-child{page-break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- ============ 1 · 封面 ============ -->
+  <section class="slide active">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">G907 · Java 期末分組作品</span>
+    <div class="pad" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="metaline" style="margin-bottom:18px">~/term-sudoku $ ./run</div>
+      <div class="cover-title">終端數獨 <span class="en">TermSudoku</span><span class="cursor"></span></div>
+      <div class="subtitle" style="font-size:22px;margin-top:18px">可玩 · 可解 · 會自己出題的文字介面數獨</div>
+      <div class="rule" style="width:220px;margin:30px 0"></div>
+      <div class="metaline" style="margin-bottom:14px">淡江大學資訊管理學系 · Java 程式設計 · 期末分組作品（G907）</div>
+      <div class="members">組員　<b>李佳勳</b> 414631225　·　<b>黃建瑋</b> 414630326　·　<b>陳曼婷</b> 414630086</div>
+    </div>
+    <span class="brandfoot">TermSudoku v1.0</span>
+    <span class="pageno">01 / 09</span>
+  </section>
+
+  <!-- ============ 2 · 動機 ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">02 · 動機</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>動機</h1>
+      <div class="rule"></div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:start">
+        <div>
+          <div class="hook">「用純文字終端機，能不能做出一個會<em>自己出題</em>、而且<em>保證每題只有一個答案</em>的數獨？」</div>
+          <ul class="bul">
+            <li>數獨規則單純、邏輯明確；9×9 盤面用純文字終端機就能完整呈現，契合「文字介面」限制。</li>
+            <li>一個應用自然涵蓋本學期<b style="color:var(--green)">六大主題</b>（封裝合成／收藏／字串／遞迴／搜索／排序），不需勉強拼湊。</li>
+            <li>同時具「可玩」與「可解」兩種模式，互動明確、結果可驗證，便於演示與互評。</li>
+          </ul>
+          <div class="fnote">劇透：能不能「自己出題」？第 6 頁見真章 →</div>
+        </div>
+        <div style="display:flex;justify-content:center;padding-top:10px">
+          <div class="mini">
+            <div>5</div><div class="e">.</div><div>3</div>
+            <div class="e">.</div><div>9</div><div class="e">.</div>
+            <div>8</div><div class="e">.</div><div>1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="brandfoot">TermSudoku</span><span class="pageno">02 / 09</span>
+  </section>
+
+  <!-- ============ 3 · 系統概覽 · 畫面設計 ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">03 · 畫面設計</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>系統概覽 · 畫面設計</h1>
+      <div class="rule"></div>
+      <div style="display:grid;grid-template-columns:430px 1fr;gap:44px;align-items:center">
+        <img class="shot" src="assets/termsudoku.png" alt="TermSudoku 遊玩畫面" style="width:430px">
+        <div>
+          <div class="lead">終端機文字介面前端</div>
+          <ul class="bul" style="font-size:17px">
+            <li><b style="color:var(--green)">主選單 5 功能</b>：開始新遊戲（選難度）／題庫選題／自動求解示範／分難度排行榜／隨機出新題</li>
+            <li>遊玩畫面：列號、行號與 3×3 框線，空格以半形句點標示，狀態列即時顯示剩餘格數與用時。</li>
+            <li>盤面上方固定「狀態列」顯示上一步結果；底部為「指令列」。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <span class="brandfoot">TermSudoku</span><span class="pageno">03 / 09</span>
+  </section>
+
+  <!-- ============ 4 · 互動 demo ① ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">04 · 互動說明 ①</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>互動 ① 操作與即時驗證　<span class="badge live">LIVE DEMO</span></h1>
+      <div class="rule"></div>
+      <div style="display:grid;grid-template-columns:1fr 430px;gap:44px;align-items:center">
+        <div>
+          <div class="cmd" style="margin-bottom:18px">
+            <code>列 行 數</code><span>填入數字 1-9（例 3 5 7）</span>
+            <code>列 行 0</code><span>清除該格</span>
+            <code>h / s</code><span>提示一格 ／ 自動求解</span>
+            <code>u / r / n</code><span>復原 ／ 重來 ／ 換題</span>
+            <code>? / q</code><span>說明 ／ 返回</span>
+          </div>
+          <div class="callout">
+            <div class="k">即時驗證</div>
+            <p>每次填數立刻檢查同列／同行／同宮衝突；題目給定格不可更動，狀態列即時回饋。數字可用全形或半形。</p>
+          </div>
+        </div>
+        <img class="shot" src="assets/play_conflict.png" alt="填數與即時衝突偵測" style="width:430px">
+      </div>
+    </div>
+    <span class="brandfoot">demo：開一題 → 填數 → 故意衝突 → 提示 h</span><span class="pageno">04 / 09</span>
+  </section>
+
+  <!-- ============ 5 · 互動 demo ② ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">05 · 互動說明 ②</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>互動 ② 自動求解 + 分難度排行榜　<span class="badge live">LIVE DEMO</span></h1>
+      <div class="rule"></div>
+      <div style="display:grid;grid-template-columns:360px 1fr;gap:36px;align-items:center">
+        <div>
+          <img class="shot" src="assets/solved.png" alt="回溯自動求解" style="width:360px">
+          <div class="fnote" style="margin-top:10px">一鍵以回溯法（backtracking）自動求解，展示遞迴。</div>
+        </div>
+        <div>
+          <img class="shot" src="assets/leaderboard.png" alt="分難度排行榜" style="width:100%;margin-bottom:16px">
+          <ul class="bul" style="font-size:16px">
+            <li>破關後記錄玩家、用時、<b style="color:var(--green)">提示次數與日期</b>。</li>
+            <li>簡單／普通／困難<b style="color:var(--green)">各一張榜</b>，依用時排序並寫檔保存。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <span class="brandfoot">demo：自動解 s → 看排行榜 [4]</span><span class="pageno">05 / 09</span>
+  </section>
+
+  <!-- ============ 6 · 隨機出題器（高點）============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">06 · 技術亮點</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>技術亮點 · 隨機出題器　<span class="badge live">LIVE DEMO</span></h1>
+      <div class="rule"></div>
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:center">
+        <img src="assets/出題器流程圖.svg" alt="出題器演算法流程圖" style="width:300px;border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.5)">
+        <div>
+          <div class="lead">題庫不再只有固定 6 題 —— 程式即時生成全新題目</div>
+          <ol class="steps">
+            <li><b>完整解隨機生成</b>：回溯填盤時把候選 1-9 洗牌，每次得到不同解盤（遞迴）。</li>
+            <li><b>逐格隨機挖洞</b>：每挖一格用 <code style="font-family:var(--mono);color:var(--green)">countSolutions</code> 計算解數（遞迴）。</li>
+            <li><b>難度控制</b>：挖到提示數達標（簡單 36／普通 30／困難 26）為止。</li>
+          </ol>
+          <div class="callout" style="margin-top:14px">
+            <div class="k">唯一解保證</div>
+            <p>解數 ≠ 1 就還原該格 → 產出題目恰有一個正解，與提示 <code style="font-family:var(--mono);color:var(--green)">h</code>、自動求解 <code style="font-family:var(--mono);color:var(--green)">s</code> 完全相容，不會生出無解或多解的爛題。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="brandfoot">demo：主選單 [5] → 程式現生一題</span><span class="pageno">06 / 09</span>
+  </section>
+
+  <!-- ============ 7 · 六大主題 ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">07 · 技術對應</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>對應本學期六大主題</h1>
+      <div class="subtitle">剛才的出題器，其實同時用到課程一半的主題 —— 整個專案把六大主題都落地：</div>
+      <div class="rule"></div>
+      <table class="themes">
+        <tr><th>主題</th><th>在程式中的實作</th></tr>
+        <tr><td class="k">物件封裝合成</td><td class="v"><b>Board／Puzzle</b> 私有欄位；<b>Game</b> 組合 Solver／PuzzleBank／Generator／Leaderboard</td></tr>
+        <tr><td class="k">收藏</td><td class="v">PuzzleBank、Leaderboard 的 <b>List</b>；復原步驟用 <b>Deque</b></td></tr>
+        <tr><td class="k">字串</td><td class="v">題庫行解析、指令解析、盤面渲染、題面序列化（出題器）</td></tr>
+        <tr><td class="k">遞迴</td><td class="v">回溯求解、解數計數 <b>countSolutions</b>、出題器 <b>fillRandom</b>、合併排序</td></tr>
+        <tr><td class="k">搜索</td><td class="v">取難度題走 <b>firstByLevel 二分搜尋</b>、byId 線性搜尋、回溯搜索</td></tr>
+        <tr><td class="k">排序</td><td class="v">合併排序（依難度）、排行榜依用時排序</td></tr>
+      </table>
+    </div>
+    <span class="brandfoot">TermSudoku</span><span class="pageno">07 / 09</span>
+  </section>
+
+  <!-- ============ 8 · 心得建議 ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">08 · 心得建議</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>心得建議</h1>
+      <div class="rule"></div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:2px">
+        <div>
+          <div style="font-family:var(--cjk);font-size:16px;font-weight:700;color:var(--green);margin-bottom:5px">陳曼婷 <span style="font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400">414630086</span></div>
+          <p style="font-family:var(--cjk);font-size:13.5px;line-height:1.5;color:var(--body)">整體來說我覺得這門課對我很有幫助。教授教材準備豐富，有連結、動畫跟 PPT，例如排序動畫用長條圖來呈現，並展現出每種排序的原理，把抽象的過程具象化，讓我更容易理解。此外，教授會清楚解釋每個程式碼的用法，易混淆處也會再多做說明，並在課堂上實際執行程式碼給我們看，這些都讓我覺得這門課真的很實用。</p>
+        </div>
+        <div>
+          <div style="font-family:var(--cjk);font-size:16px;font-weight:700;color:var(--green);margin-bottom:5px">黃建瑋 <span style="font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400">414630326</span></div>
+          <p style="font-family:var(--cjk);font-size:13.5px;line-height:1.5;color:var(--body)">透過這次的專題報告，我們將上下學期所學的程式設計與相關概念加以整合並實際應用。由於組內有成員平時喜歡玩數獨，因此我們從一開始便將主題設定為數獨遊戲的開發，希望結合興趣與課堂所學，提升作品的完整性。製作過程中遇到不少挑戰：由於希望盡可能融入課程學到的各項技術與概念，開發初期出現許多錯誤與無法執行的程式碼；面對這些問題，我們透過查閱資料、參考相關做法、反覆測試與除錯，逐步找出問題並加以修正，也結合 AI 工具來優化內容。</p>
+        </div>
+        <div>
+          <div style="font-family:var(--cjk);font-size:16px;font-weight:700;color:var(--green);margin-bottom:5px">李佳勳 <span style="font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400">414631225</span> <span style="font-family:var(--cjk);font-size:11px;color:var(--gold);font-weight:400">（草稿，待修訂）</span></div>
+          <p style="font-family:var(--cjk);font-size:13.5px;line-height:1.5;color:var(--body)">這次專題我主要負責程式實作。一開始把功能拆成 Board、Solver、PuzzleBank 等類別時，不太懂為什麼要分這麼細；後來要加排行榜和出題器，發現幾乎不用動到舊程式，才真的體會封裝和合成的好處。最難的是回溯遞迴，自動求解和出題器都靠它，我卡了很久，靠著把過程一步步印出來、自己在紙上跟著跑，才慢慢看懂它怎麼嘗試跟退回。中間也踩了不少 bug，像排行榜讀到壞掉的資料會整個清空，都是反覆測試才抓到。比起只看課本，親手把一個完整程式做出來讓我學到最多。</p>
+        </div>
+      </div>
+    </div>
+    <span class="brandfoot">TermSudoku</span><span class="pageno">08 / 09</span>
+  </section>
+
+  <!-- ============ 9 · GitHub + 執行 ============ -->
+  <section class="slide">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <span class="chapter">09 · 公開倉庫</span>
+    <div class="pad">
+      <h1 class="title"><span class="hash">#</span>GitHub 公開倉庫 &amp; 執行方式</h1>
+      <div class="rule"></div>
+      <div style="margin-bottom:22px;font-family:var(--cjk);font-size:18px;color:var(--body)">
+        倉庫　<span style="font-family:var(--mono);color:var(--blue);font-weight:600">github.com/nicktodj-boop/TermSudoku</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start">
+        <div class="code">
+          <div><span class="pmt">$</span> <span class="g">javac -encoding UTF-8 -d out src/*.java</span></div>
+          <div><span class="pmt">$</span> <span class="g">java -cp out TermSudoku</span></div>
+        </div>
+        <ul class="bul" style="font-size:16px">
+          <li>需 JDK 17 以上（開發環境 JDK 25）；在專案根目錄執行（讀 resources/puzzles.txt）。</li>
+          <li>NetBeans：<b style="color:var(--green)">File → Open Project</b> 選此資料夾，按 Run 即可，主類別 TermSudoku。</li>
+          <li>倉庫含全部原始碼、題庫資源與自我測試（test/SelfTest.java）。</li>
+        </ul>
+      </div>
+      <div style="margin-top:44px;font-family:var(--cjk);font-size:26px;font-weight:700;color:var(--fg);text-align:center">
+        終端裡的完整數獨：<span style="color:var(--green)">可玩 · 可解 · 會出題。</span>
+      </div>
+    </div>
+    <span class="brandfoot">TermSudoku v1.0</span><span class="pageno">09 / 09</span>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button id="prev">‹ 上一頁</button>
+  <span><span id="cur">1</span> / 9</span>
+  <button id="next">下一頁 ›</button>
+  <span class="hint">← → 翻頁 · F 全螢幕</span>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+  document.getElementById('cur').textContent=i+1}
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);
+  document.getElementById('stage').style.transform=`scale(${s})`}
+addEventListener('resize',fit);fit();
+document.getElementById('next').onclick=()=>show(i+1);
+document.getElementById('prev').onclick=()=>show(i-1);
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')show(i+1);
+  else if(e.key==='ArrowLeft'||e.key==='PageUp')show(i-1);
+  else if(e.key==='Home')show(0);else if(e.key==='End')show(slides.length-1);
+  else if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()}
+});
+</script>
+</body>
+</html>
